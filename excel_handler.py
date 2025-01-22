@@ -13,6 +13,7 @@ class ExcelHandler:
         self.sheet_name = sheet_name
         self.wb = None
         self.sheet = None
+        self.open_workbook()
 
     def open_workbook(self):
         """
@@ -47,15 +48,8 @@ class ExcelHandler:
             The value of the cell at (m, n) or None if not found.
         """
         try:
-            # Open the workbook and select the sheet
-            wb = xw.Book(self.file_path)
-            sheet = wb.sheets[self.sheet_name]
-
             # Get the value of the specified cell
-            cell_value = sheet.cells(m, n).value
-
-            # Close the workbook
-            wb.close()
+            cell_value = self.sheet.cells(m, n).value
 
             return cell_value
 
@@ -77,16 +71,13 @@ class ExcelHandler:
             list: A 2D list of values from the specified range.
         """
         try:
-            wb = xw.Book(self.file_path)
-            sheet = wb.sheets[self.sheet_name]
-            range_values = sheet.range((start_row, start_col), (end_row, end_col)).value
-            wb.close()
+            range_values = self.sheet.range((start_row, start_col), (end_row, end_col)).value
             return range_values
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
         
-    def get_row_values(self, row):
+    def get_row_values(self, row, max_col=1000):
         """
         Get all values in the specified row.
 
@@ -97,16 +88,13 @@ class ExcelHandler:
             list: A list of values in the row.
         """
         try:
-            wb = xw.Book(self.file_path)
-            sheet = wb.sheets[self.sheet_name]
-            row_values = sheet.range(f"{row}:{row}").value
-            wb.close()
+            row_values = self.sheet.range(f"1{row}:{max_col}{row}").value
             return row_values
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
 
-    def get_column_values(self, col):
+    def get_column_values(self, col, max_row=100):
         """
         Get all values in the specified column.
 
@@ -117,15 +105,33 @@ class ExcelHandler:
             list: A list of values in the column.
         """
         try:
-            wb = xw.Book(self.file_path)
-            sheet = wb.sheets[self.sheet_name]
-            col_values = sheet.range(f"{chr(64 + col)}:{chr(64 + col)}").value
-            wb.close()
-            return col_values
+            clo_letter = chr(64 + col)
+            return self.sheet.range(f"{clo_letter}1:{clo_letter}{max_row}").value
         except Exception as e:
             print(f"An error occurred: {e}")
             return None
 
+    def find_string_position(self, target):
+        """
+        Find the position of a speciffic string in the sheet.
+
+        Parameters:
+            target (str): The string to search for.
+
+        Returns:
+            list: A list of tuples (row, colum) where the string is found.
+        """
+        positions = []
+        for row in range(1, 50):
+            print(f"{row} row Searching..")
+            for col in range(1, 650):
+                if self.sheet.range((row,col)).value == target:
+                    print("The Row is: "+str(row)+" and the column is "+str(col))
+                    positions.append((row, col))
+                    return positions
+                
+        return positions
+        
     def set_cell_value(self, m, n, value):
         """
         Set the value of the cell at the mth row and nth column.
@@ -136,11 +142,7 @@ class ExcelHandler:
             value: The value to set in the cell.
         """
         try:
-            wb = xw.Book(self.file_path)
-            sheet = wb.sheets[self.sheet_name]
-            sheet.cells(m, n).value = value
-            wb.save()
-            wb.close()
+            self.sheet.cells(m, n).value = value
         except Exception as e:
             print(f"An error occurred: {e}")
 
@@ -176,47 +178,56 @@ class ExcelHandler:
 
 # Example usage
 if __name__ == "__main__":
-    file_path = "example.xlsx"  # Replace with your file path
-    sheet_name = "Sheet1"       # Replace with your sheet name
+    file_path = r"D:\ADMIN_SUNGJUN\CCIC_RANDOM\IBD\XLwings\Excel\base.xlsx"  # Replace with your file path
+    sheet_name = "NAVI"       # Replace with your sheet name
 
     excel_reader = ExcelHandler(file_path, sheet_name)
     excel_reader.open_workbook()
 
-    # Test get_cell_value
-    m = 3  # Row number
-    n = 2  # Column number
-    value = excel_reader.get_cell_value(m, n)
-    print(f"Value at row {m}, column {n}: {value}")
+    # # Test get_cell_value
+    # m = 3  # Row number
+    # n = 2  # Column number
+    # value = excel_reader.get_cell_value(m, n)
+    # print(f"Value at row {m}, column {n}: {value}")
 
-    # Test get_row_values
-    row = 3  # Row number
-    row_values = excel_reader.get_row_values(row)
-    print(f"Values in row {row}: {row_values}")
+    # # Test get_row_values
+    # row = 3  # Row number
+    # row_values = excel_reader.get_row_values(row)
+    # print(f"Values in row {row}: {row_values}")
 
-    # Test get_column_values
-    col = 2  # Column number
-    column_values = excel_reader.get_column_values(col)
-    print(f"Values in column {col}: {column_values}")
+    # # Test get_column_values
+    # col = 2  # Column number
+    # column_values = excel_reader.get_column_values(col)
+    # print(f"Values in column {col}: {column_values}")
 
-    # Test get_range_values
-    start_row = 1
-    start_col = 1
-    end_row = 3
-    end_col = 3
-    range_values = excel_reader.get_range_values(start_row, start_col, end_row, end_col)
-    print(f"Values in range ({start_row}, {start_col}) to ({end_row}, {end_col}): {range_values}")
+    # # Test get_range_values
+    # start_row = 1
+    # start_col = 1
+    # end_row = 3
+    # end_col = 3
+    # range_values = excel_reader.get_range_values(start_row, start_col, end_row, end_col)
+    # print(f"Values in range ({start_row}, {start_col}) to ({end_row}, {end_col}): {range_values}")
 
-    # Test setting a cell value
-    new_value = "Test Value"
-    excel_reader.set_cell_value(5, 5, new_value)
-    print(f"Set value at row 5, column 5: {new_value}")
+    # 자동화 메뉴얼 구분 (2, 65)
+    # Level1 (2, 9)
+    # Level2 (2, 10)
+    # Level3 (2, 11)
+    target_string = 'Level3'
+    test = excel_reader.find_string_position(target_string)
+    print(f"Level3가 적힌 값: {test}")
+    
 
-    # Test is_cell_empty
-    is_empty = excel_reader.is_cell_empty(5, 5)
-    print(f"Is cell at row 5, column 5 empty? {is_empty}")
+    # # Test setting a cell value
+    # new_value = "Test Value"
+    # excel_reader.set_cell_value(5, 5, new_value)
+    # print(f"Set value at row 5, column 5: {new_value}")
 
-    # Test get_sheet_names
-    sheet_names = excel_reader.get_sheet_names()
-    print(f"Sheet names: {sheet_names}")
+    # # Test is_cell_empty
+    # is_empty = excel_reader.is_cell_empty(5, 5)
+    # print(f"Is cell at row 5, column 5 empty? {is_empty}")
 
-    excel_reader.close_workbook()
+    # # Test get_sheet_names
+    # sheet_names = excel_reader.get_sheet_names()
+    # print(f"Sheet names: {sheet_names}")
+
+    # excel_reader.close_workbook()
