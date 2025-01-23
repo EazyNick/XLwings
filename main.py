@@ -22,7 +22,7 @@ def compare_excels(file1_path, sheet1_name, file2_path, sheet2_name):
                 val2_level1 = str(excel2.get_cell_value(m, 9))
                 val2_level2 = str(excel2.get_cell_value(m, 10))
                 val2_level3 = str(excel2.get_cell_value(m, 11))
-                val2_select = str(excel1.get_cell_value(n, 65))
+                val2_select = str(excel1.get_cell_value(m, 65))
 
                 # Check if the values match
                 if val1_level1 == val2_level1 and val1_level2 == val2_level2 and val1_level3 == val2_level3:
